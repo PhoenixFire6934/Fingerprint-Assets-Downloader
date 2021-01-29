@@ -1,5 +1,6 @@
 import requests
 import os
+import sys
 
 from Utils.Fingerprint import Fingerprint
 from Utils.Files import Files
@@ -35,23 +36,27 @@ class Main:
         folder, name = os.path.split(file)
         full_path = f"{fingerprintSha}/{folder}/{name}"
 
-        if not os.path.isdir(fingerprintSha):
-            os.mkdir(fingerprintSha)
+        if not os.path.exists(f"{fingerprintSha}/{folder}"):
+            os.makedirs(f"{fingerprintSha}/{folder}")
 
-        if not os.path.isdir(folder):
-            if not os.path.exists(f"{fingerprintSha}/{folder}"):
-                os.makedirs(f"{fingerprintSha}/{folder}")
+        request = requests.get(url)
 
-        data = requests.get(url).content
+        if request.status_code == 200:
 
-        open(os.path.join(full_path), 'wb').write(data)
+            if not os.path.isfile(full_path):
+                data = request.content
+                open(os.path.join(full_path), 'wb').write(data)
 
-        print((f"Downloaded {file}"))
+                print((f"Downloaded {file}"))
+            else:
+                print(f"{folder}/{name} was already downloaded")
+
+        else:
+            print(f"Received status code {request.status_code}!")
+            sys.exit()
 
 
 
 if __name__ == "__main__":
    AssetsDownloader = Main()
    AssetsDownloader.initialize()
-
-
